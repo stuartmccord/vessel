@@ -22,11 +22,7 @@ if [ "$MACHINE" == "linux" ]; then
     if grep -q Microsoft /proc/version; then # WSL
         export XDEBUG_HOST=10.0.75.1
     else
-        if [ "$(command -v ip)" ]; then
-            export XDEBUG_HOST=$(ip addr show docker0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
-        else
-            export XDEBUG_HOST=$(ifconfig docker0 | grep "inet addr" | cut -d ':' -f 2 | cut -d ' ' -f 1)
-        fi
+        export XDEBUG_HOST=$(/sbin/ifconfig docker0 | grep "inet addr" | cut -d ':' -f 2 | cut -d ' ' -f 1)
     fi
     SEDCMD="sed -i"
 elif [ "$MACHINE" == "mac" ]; then
@@ -130,11 +126,11 @@ if [ $# -gt 0 ]; then
         if [ "$EXEC" == "yes" ]; then
             $COMPOSE exec \
                 -u vessel \
-                app \
+                php \
                 php artisan "$@"
         else
             $COMPOSE run --rm \
-                app \
+                php \
                 php artisan "$@"
         fi
 
@@ -145,11 +141,11 @@ if [ $# -gt 0 ]; then
         if [ "$EXEC" == "yes" ]; then
             $COMPOSE exec \
                 -u vessel \
-                app \
+                php \
                 composer "$@"
         else
             $COMPOSE run --rm \
-                app \
+                php \
                 composer "$@"
         fi
 
@@ -160,27 +156,12 @@ if [ $# -gt 0 ]; then
         if [ "$EXEC" == "yes" ]; then
             $COMPOSE exec \
                 -u vessel \
-                app \
+                php \
                 ./vendor/bin/phpunit "$@"
         else
             $COMPOSE run --rm \
-                app \
+                php \
                 ./vendor/bin/phpunit "$@"
-        fi
-
-    # If "tinker" is used, drop into the REPL
-    # inside a new container
-    elif [ "$1" == "tinker" ] ; then
-        shift 1
-        if [ "$EXEC" == "yes" ]; then
-            $COMPOSE exec \
-                -u vessel \
-                app \
-                php artisan tinker
-        else
-            $COMPOSE run --rm \
-                app \
-                php artisan tinker
         fi
 
     # If "npm" is used, run npm
