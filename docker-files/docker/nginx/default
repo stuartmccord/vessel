@@ -14,18 +14,16 @@ server {
 
     include h5bp/basic.conf;
 
+    client_max_body_size 100M;
+
     location / {
         try_files $uri $uri/ /index.php$is_args$args;
     }
 
     location ~ \.php$ {
-        try_files $uri =404;
-        fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass php:9000;
-        fastcgi_index index.php;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_param PATH_INFO $fastcgi_path_info;
+        add_header X-Served-By Vessel;
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.4-fpm.sock;
     }
 
     error_page 404 /index.php;
